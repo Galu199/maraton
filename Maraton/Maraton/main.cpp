@@ -35,8 +35,9 @@ Program uruchamiany jest z linii poleceñ z wykorzystaniem nastêpuj¹cego prze³¹cz
 
 #include <iostream>
 #include <string>
-/*
+#include <fstream>
 #include <sstream>
+/*
 #include <vector>
 #include <climits>
 #include <random>
@@ -69,16 +70,68 @@ int main(int argc, char** argv) {
 	*/
 
 	if (argc > 2 && strcmp(argv[1], "-i") == 0) {
-		std::string* nazwy_plikow;
 		int ilosc_plikow = 0;
-
+		std::string* nazwy_plikow;
 		nazwy_plikow = new std::string[argc - 2];
+
 		for (int i = 2; i < argc; i++) {
 			nazwy_plikow[i - 2] = argv[i];
 			ilosc_plikow++;
 		}
+
 		for (int i = 0; i < ilosc_plikow; i++) {
-			std::cout <<"Plik: "<< nazwy_plikow[i] <<std::endl;
+			//std::clog <<"Plik: "<< nazwy_plikow[i] <<std::endl;
+			std::ifstream plik(nazwy_plikow[i]);
+			std::string linia;
+
+			if (plik) {
+				//std::clog << "plik zostal otwarty" << std::endl;
+
+				int i = 0;
+				std::string nazwa_turnieju = "";
+				std::string data = "";
+				int kolejnosc_na_mecie = 0;
+				std::string nazwisko = "";
+				int numer_zawodnika_w_zawodach = 0;
+				std::string czas = "";
+				char przecinek = ',';
+
+				while ( getline(plik,linia) ) {
+					//std::clog << "pobrano linijke z pliku" << std::endl;
+					std::istringstream slinia(linia);
+					std::istringstream sczas(czas);
+					//<kolejnoœæ na mecie>, <nazwisko>, <nr zawodnika w zawodach>, <czas (w formacie: gg:mm:ss)>
+					if (slinia >> kolejnosc_na_mecie >> przecinek >> nazwisko >> numer_zawodnika_w_zawodach >> przecinek >> czas) {
+						//std::clog << "znaleziono wartosc" << std::endl;
+						i++;
+						//dokoncz czas;
+						std::cout << "linia " << i << ": " << kolejnosc_na_mecie << " " << nazwisko << " " << numer_zawodnika_w_zawodach << " " << czas << std::endl;
+					}
+					else {
+						switch (i) {
+						case 0:
+							i++;
+							if (slinia >> nazwa_turnieju) {
+								//std::clog << "znaleziono tytul" << std::endl;
+							} else{ /*clog<<"twój plik :"<<~~~~<<"nie zawiera nazwy tujnieju"<<endl;*/ }
+						break;
+						case 1:
+							i++;
+							if (slinia >> data) {
+								//std::clog << "znaleziono date" << std::endl;
+							} else { /*plik nie zawiera daty*/ }
+						break;
+						default:
+							i++;
+						break;
+						}
+					}
+				}
+			}
+			else {
+				//std::clog << "plik nie zostal otwarty" << std::endl;
+			}
+			
 		}
 
 		delete[] nazwy_plikow;
