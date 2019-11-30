@@ -33,10 +33,33 @@ Program uruchamiany jest z linii poleceñ z wykorzystaniem nastêpuj¹cego prze³¹cz
 
 */
 
+//1. Celem projekt jest przeæwiczenie implementacji i korzystania z dynamicznych struktur danych (np. listy, drzewa) i zarz¹dzania pamiêci¹ w programie. Warunkiem sine qua non jest u¿ycie w programie tych struktur.
+//2. U¿ycie bibliotecznych kontenerów (np. vector, list itd.) ani dynamicznie alokowanych tablic nie spe³nia warunku z pkt. 1.
+//3. Typu string mo¿na u¿ywaæ wy³¹cznie do przechowywania napisów, np. nazw plików itd. Nie jest dopuszczalne u¿ycie tego typu do przechowywania ci¹gów danych, np. ci¹gu liczb.
+//4. Przed implementacj¹ konieczna jest akceptacja struktury danych przez prowadz¹cego zajêcia.
+//5. Program powinien byæ podzielony na pliki z deklaracjami (*.h) i definicjami (*.cpp).
+//6. Wszystkie funkcje musz¹ byæ skomentowane w doxygenie.
+
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <cstdio>
+
+#include "funkcje.h";
+
+struct zawodnik {
+	std::string nazwisko;
+	int rok;
+	int miesiac;
+	int dzien;
+	std::string truniej;
+	int hour;
+	int min;
+	int sec;
+	zawodnik* pNext;
+};
+
 /*
 #include <vector>
 #include <climits>
@@ -44,8 +67,6 @@ Program uruchamiany jest z linii poleceñ z wykorzystaniem nastêpuj¹cego prze³¹cz
 #include <chrono>
 #include <iomanip>
 */
-#include "funkcje.h";
-
 int main(int argc, char** argv) {
 	
 	/*
@@ -82,50 +103,77 @@ int main(int argc, char** argv) {
 		for (int i = 0; i < ilosc_plikow; i++) {
 			//std::clog <<"Plik: "<< nazwy_plikow[i] <<std::endl;
 			std::ifstream plik(nazwy_plikow[i]);
-			std::string linia;
+			std::string linia="";
+			int kolejnosc_na_mecie = 0;
+			std::string nazwisko = "";
+			int numer_zawodnika_w_zawodach = 0;
+			std::string czas = "";
+			std::istringstream sczas(czas);
 
 			if (plik) {
 				//std::clog << "plik zostal otwarty" << std::endl;
-
 				int i = 0;
 				std::string nazwa_turnieju = "";
 				std::string data = "";
-				int kolejnosc_na_mecie = 0;
-				std::string nazwisko = "";
-				int numer_zawodnika_w_zawodach = 0;
-				std::string czas = "";
-				char przecinek = ',';
 
 				while ( getline(plik,linia) ) {
+					std::istringstream s_linia(linia);
 					//std::clog << "pobrano linijke z pliku" << std::endl;
-					std::istringstream slinia(linia);
-					std::istringstream sczas(czas);
 					//<kolejnoœæ na mecie>, <nazwisko>, <nr zawodnika w zawodach>, <czas (w formacie: gg:mm:ss)>
-					if (slinia >> kolejnosc_na_mecie >> przecinek >> nazwisko >> numer_zawodnika_w_zawodach >> przecinek >> czas) {
-						//std::clog << "znaleziono wartosc" << std::endl;
-						i++;
-						//dokoncz czas;
-						std::cout << "linia " << i << ": " << kolejnosc_na_mecie << " " << nazwisko << " " << numer_zawodnika_w_zawodach << " " << czas << std::endl;
-					}
-					else {
-						switch (i) {
-						case 0:
+
+					switch (i) {
+					case 0:
+						if (s_linia >> nazwa_turnieju) {
 							i++;
-							if (slinia >> nazwa_turnieju) {
-								//std::clog << "znaleziono tytul" << std::endl;
-							} else{ /*clog<<"twój plik :"<<~~~~<<"nie zawiera nazwy tujnieju"<<endl;*/ }
-						break;
-						case 1:
-							i++;
-							if (slinia >> data) {
-								//std::clog << "znaleziono date" << std::endl;
-							} else { /*plik nie zawiera daty*/ }
-						break;
-						default:
-							i++;
-						break;
+							//std::clog << "znaleziono tytul" << std::endl;
 						}
+						else { /*clog<<"twój plik :"<<~~~~<<"nie zawiera nazwy tujnieju"<<endl;*/ }
+						break;
+					case 1:
+						if (s_linia >> data) {
+							i++;
+							//std::clog << "znaleziono date" << std::endl;
+						}
+						else { /*plik nie zawiera daty*/ }
+						break;
+					default:
+						char* tab_linia = new char[linia.length() + 1];
+						strcpy(tab_linia, linia.c_str());
+						char* bez_przecinka = strtok(tab_linia, " ,");
+						std::string form_linia;
+						while (bez_przecinka != NULL)
+						{
+							form_linia += " ";
+							form_linia += bez_przecinka;
+							bez_przecinka = strtok(NULL, " ,.-");
+						}
+						std::istringstream s_linia(form_linia);
+						if (s_linia >> kolejnosc_na_mecie >> nazwisko >> numer_zawodnika_w_zawodach >> czas) {
+							//std::clog << "znaleziono wartosc" << std::endl;
+							//std::cout << "linia " << i << ": " << kolejnosc_na_mecie << " " << nazwisko << " " << numer_zawodnika_w_zawodach << " " << czas << std::endl;
+							i++;
+							std::istringstream s_czas(czas);
+							int hour = 0;
+							int min = 0;
+							int sec = 0;
+							char dwukropek = ':';
+							if (s_czas >> hour >> dwukropek >> min >> dwukropek >> sec) {
+								if (dwukropek == ':') {
+									//to jest czas
+								}
+								else {
+									//error Ÿle podany czas
+								}
+							}
+						}
+						delete[] tab_linia;
+						tab_linia = nullptr;
+						delete[] bez_przecinka;
+						bez_przecinka = nullptr;
+						break;
 					}
+
+					
 				}
 			}
 			else {
